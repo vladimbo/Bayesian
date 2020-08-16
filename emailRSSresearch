@@ -1,0 +1,242 @@
+import bs4
+from bs4 import BeautifulSoup as soup
+from urllib.request import urlopen
+
+fr = open('C://B//RSSRESEARCH.txt', 'w', encoding='utf-8')
+
+
+
+# BIS Central Bank Speeches
+cbs_url="https://www.bis.org/doclist/cbspeeches.rss"
+Client1=urlopen(cbs_url)
+xml_page=Client1.read()
+Client1.close()
+
+
+soupcbs_page=soup(xml_page,"xml")
+cbs_list=soupcbs_page.findAll("item")
+
+# print(news_list)
+# Print news title, url and publish date
+print("-" * 60, file = fr)
+print("-" * 60, file = fr)
+print("BIS CENBANK SPEECHES", file = fr)
+print("-" * 60, file = fr)
+print("-" * 60, file = fr)
+for item in cbs_list:
+    print(item.title.text, file = fr)
+    print(item.link.text, file = fr)
+    print(item.date.text, file = fr)
+    print("-"*60, file = fr)
+
+# BIS Working papers
+biswp_url="https://www.bis.org/list/papers/index.rss"
+Client2=urlopen(biswp_url)
+xml_page=Client2.read()
+Client2.close()
+soupbiswp_page=soup(xml_page,"xml")
+biswp_list=soupbiswp_page.findAll("item")
+# Print news title, url and publish date
+print("-" * 60, file = fr)
+print("BIS WORKING PAPERS", file = fr)
+print("-" * 60, file = fr)
+print("-" * 60, file = fr)
+for item in biswp_list:
+   print(item.title.text, file = fr)
+   print(item.link.text, file = fr)
+   print(item.date.text, file = fr)
+   print("-"*60, file = fr)
+
+# IMF Working papers
+imfwp_url="https://www.imf.org/external/rss/feeds.aspx?category=PUBS_WP"
+Client3=urlopen(imfwp_url)
+xml_page=Client3.read()
+Client3.close()
+soupimfwp_page=soup(xml_page,"xml")
+imfwp_list=soupimfwp_page.findAll("item")
+# Print news title, url and publish date
+print("-" * 60, file = fr)
+print("IMF WORKING PAPERS", file = fr)
+print("-" * 60, file = fr)
+print("-" * 60, file = fr)
+for item in imfwp_list:
+   print(item.title.text, file = fr)
+   print(item.link.text, file = fr)
+   print(item.pubDate.text, file = fr)
+   #print(item.description.text)
+  # print(imfwp_list)
+   print("-"*60, file = fr)
+
+
+# IMF COUNTRY REPORTS
+imfcr_url="https://www.imf.org/external/rss/feeds.aspx?category=PUBS_CR"
+Client3a=urlopen(imfcr_url)
+xml_page=Client3a.read()
+Client3a.close()
+soupimfcr_page=soup(xml_page,"xml")
+imfcr_list=soupimfcr_page.findAll("item")
+# Print news title, url and publish date
+print("-" * 60, file = fr)
+print("IMF COUNTRY REPORTS", file = fr)
+print("-" * 60, file = fr)
+print("-" * 60, file = fr)
+for item in imfcr_list:
+   print(item.title.text, file = fr)
+   print(item.link.text, file = fr)
+   print(item.pubDate.text, file = fr)
+   #print(item.description.text)
+  # print(imfwp_list)
+   print("-"*60, file = fr)
+
+# NEW YORK FED WORKING PAPERS
+nyfed_url = "http://feeds.feedburner.com/LibertyStreetEconomics"
+Client5 = urlopen(nyfed_url)
+xml_page = Client5.read()
+Client5.close()
+soupnyfed_page = soup(xml_page, "xml")
+nyfed_list = soupnyfed_page.findAll("item")
+# Print news title, url and publish date
+print("-" * 60, file = fr)
+print("NEW YORK FED WORKING PAPERS", file = fr)
+print("-" * 60, file = fr)
+print("-" * 60, file = fr)
+for item in nyfed_list:
+    print(item.title.text, file = fr)
+    print(item.link.text, file = fr)
+    print(item.date.text, file = fr)
+    # print(item.description.text)
+    # print(imfwp_list)
+    print("-" * 60, file = fr)
+
+
+
+# FEDERAL RESERVE BOARD WORKING PAPERS
+fedwp_url = "https://www.federalreserve.gov/feeds/working_papers.xml"
+Client6 = urlopen(fedwp_url)
+xml_page = Client6.read()
+Client6.close()
+soupfedwp_page = soup(xml_page, "xml")
+fedwp_list = soupfedwp_page.findAll("item")
+# Print news title, url and publish date
+print("-" * 60, file = fr)
+print("FEDERAL RESERVE BOARD WORKING PAPERS", file = fr)
+print("-" * 60, file = fr)
+print("-" * 60, file = fr)
+for item in fedwp_list:
+    print(item.title.text, file = fr)
+    print(item.link.text, file = fr)
+    print(item.pubDate.text, file = fr)
+    # print(item.description.text)
+    # print(imfwp_list)
+    print("-" * 60, file = fr)
+
+
+# FRB ATLANTA WP
+Fedatl_url="https://www.frbatlanta.org/rss/wps"
+Client7 = urlopen(Fedatl_url)
+xml_page = Client7.read()
+Client7.close()
+soupfedatl_page=soup(xml_page,"xml")
+fedatl_list=soupfedatl_page.findAll("item")
+# print(news_list)
+# Print news title, url and publish date
+print("-" * 60, file = fr)
+print("FED ATLANTA", file = fr)
+print("-" * 60, file = fr)
+print("-" * 60, file = fr)
+for item in fedatl_list:
+    print(item.title.text, file = fr)
+    print(item.link.text, file = fr)
+    print(item.description.text, file = fr)
+    #print(item.date.text)
+    print("-"*60, file = fr)
+
+# NBER WORKING PAPERS
+nberwp_url = "https://data.nber.org/rss/new.xml"
+Client4 = urlopen(nberwp_url)
+xml_page = Client4.read()
+Client4.close()
+soupnberwp_page = soup(xml_page, "xml")
+nberwp_list = soupnberwp_page.findAll("item")
+# Print news title, url and publish date
+print("-" * 60, file = fr)
+print("NBER WORKING PAPERS", file = fr)
+print("-" * 60, file = fr)
+print("-" * 60, file = fr)
+for item in nberwp_list:
+    print(item.title.text, file = fr)
+    print(item.link.text, file = fr)
+    # print(item.pubDate.text)
+    # print(item.description.text)
+    # print(imfwp_list)
+    print("-" * 60, file = fr)
+
+# ECB WPs
+faecb_url="https://www.ecb.europa.eu/rss/wppub.html"
+Clientecb=urlopen(faecb_url)
+xml_page=Clientecb.read()
+Clientecb.close()
+
+
+soupecb_page=soup(xml_page,"xml")
+ecb_list=soupecb_page.findAll("item")
+
+# print(news_list)
+# Print news title, url and publish date
+print("-" * 60, file = fr)
+print("ECB WPs", file = fr)
+print("-" * 60, file = fr)
+print("-" * 60, file = fr)
+for item in ecb_list:
+    print(item.title.text, file = fr)
+    print(item.link.text, file = fr)
+   # print(item.description.text)
+    print(item.pubDate.text, file = fr)
+    print("-"*60, file = fr)
+
+
+# ECB Speeches
+faecbs_url="https://www.ecb.europa.eu/rss/press.html"
+Clientecbs=urlopen(faecbs_url)
+xml_page=Clientecbs.read()
+Clientecbs.close()
+
+
+soupecbs_page=soup(xml_page,"xml")
+ecbs_list=soupecbs_page.findAll("item")
+
+# print(news_list)
+# Print news title, url and publish date
+print("-" * 60, file = fr)
+print("ECB Speeches", file = fr)
+print("-" * 60, file = fr)
+print("-" * 60, file = fr)
+for item in ecbs_list:
+    print(item.title.text, file = fr)
+    print(item.link.text, file = fr)
+   # print(item.description.text)
+    print(item.pubDate.text, file = fr)
+    print("-"*60, file = fr)
+
+# Fed Speeches
+feds_url="https://www.federalreserve.gov/feeds/speeches_and_testimony.xml"
+Clientfs=urlopen(feds_url)
+xml_page=Clientfs.read()
+Clientfs.close()
+
+
+soupfeds_page=soup(xml_page,"xml")
+feds_list=soupfeds_page.findAll("item")
+
+# print(news_list)
+# Print news title, url and publish date
+print("-" * 60, file = fr)
+print("FED Speeches", file = fr)
+print("-" * 60, file = fr)
+print("-" * 60, file = fr)
+for item in feds_list:
+    print(item.title.text, file = fr)
+    print(item.link.text, file = fr)
+   # print(item.description.text)
+    print(item.pubDate.text, file = fr)
+    print("-"*60, file = fr)

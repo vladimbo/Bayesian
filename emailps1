@@ -1,0 +1,13 @@
+$EmailTo = "rssnewsbot1@gmail.com"
+$EmailFrom = "rssnewsbot1@gmail.com"
+$Subject = "BIS IMF Cenbank pubs" 
+$Body = Get-Content -Path C:\B\RSSRESEARCH.txt | Out-String 
+$SMTPServer = "smtp.gmail.com" 
+$filenameAndPath = "C:\B\RSSRESEARCH.txt"
+$SMTPMessage = New-Object System.Net.Mail.MailMessage($EmailFrom,$EmailTo,$Subject,$Body)
+$attachment = New-Object System.Net.Mail.Attachment($filenameAndPath)
+$SMTPMessage.Attachments.Add($attachment)
+$SMTPClient = New-Object Net.Mail.SmtpClient($SmtpServer, 587) 
+$SMTPClient.EnableSsl = $true 
+$SMTPClient.Credentials = New-Object System.Net.NetworkCredential("rssnewsbot1@gmail.com", "michael98!"); 
+$SMTPClient.Send($SMTPMessage)

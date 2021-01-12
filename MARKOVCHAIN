@@ -1,0 +1,199 @@
+import os
+import requests
+import pymc3 as pm
+import pandas as pd
+import numpy as np
+from matplotlib import pyplot as plt
+from matplotlib import dates as mdates
+from matplotlib import ticker
+import datetime as dt
+from datetime import date
+from datetime import datetime
+
+
+
+import sys
+
+from matplotlib import gridspec
+from numba import njit, prange
+from pyts.image import MarkovTransitionField
+
+import tsia.plot
+import tsia.markov
+import tsia.network_graph
+
+# matplotlib inline
+plt.style.use('Solarize_Light2')
+from pandas.plotting import register_matplotlib_converters
+register_matplotlib_converters()
+
+import pdblp
+con = pdblp.BCon()
+con.start()
+A=con.bdh(['USDRUB Curncy'], ['PX_LAST'],
+        '20130101', '20201231', elms=[("periodicityAdjustment", "ACTUAL")])
+#A=A.drop(A.head(2).index, inplace=True)
+
+
+A.columns = ['RUB3MV']
+print(A)
+
+
+fig = plt.figure(figsize=(28,4))
+plt.plot(A, linewidth=0.5)
+plt.show()
+
+n_bins = 8
+strategy = 'quantile'
+X = A.values.reshape(1, -1)
+n_samples, n_timestamps = X.shape
+print(X)
+
+mtf = MarkovTransitionField(image_size=48, n_bins=n_bins, strategy=strategy)
+tag_mtf = mtf.fit_transform(X)
+
+
+fig = plt.figure(figsize=(5,4))
+ax = fig.add_subplot(111)
+_, mappable_image = tsia.plot.plot_markov_transition_field(mtf=tag_mtf[0], ax=ax, reversed_cmap=True)
+plt.colorbar(mappable_image);
+
+X_binned, bin_edges = tsia.markov.discretize(A)
+X_binned
+bin_edges
+
+tsia.plot.plot_timeseries_quantiles(A, bin_edges, label='signal-1')
+plt.legend();
+
+X_mtm = tsia.markov.markov_transition_matrix(X_binned)
+X_mtm
+
+
+X_mtm = tsia.markov.markov_transition_probabilities(X_mtm)
+np.round(X_mtm * 100, 1)
+
+
+@njit()
+def _markov_transition_field(X_binned, X_mtm, n_timestamps, n_bins):
+        X_mtf = np.zeros((n_timestamps, n_timestamps))
+
+        # We loop through each timestamp twice to build a N x N matrix:
+        for i in prange(n_timestamps):
+                for j in prange(n_timestamps):
+                        # We align each probability along the temporal order: MTF(i,j)
+                        # denotes the transition probability of the bin 'i' to the bin
+                        # 'j':
+                        X_mtf[i, j] = X_mtm[X_binned[i], X_binned[j]]
+
+        return X_mtf
+
+
+X_mtf = _markov_transition_field(X_binned, X_mtm, n_timestamps, n_bins)
+np.round(X_mtf * 100, 1)
+
+second_row = np.round(X_mtf * 100, 1)[1]
+second_row[0:10]
+
+fig = plt.figure(figsize=(15,12))
+ax = fig.add_subplot(1,1,1)
+_, mappable_image = tsia.plot.plot_markov_transition_field(mtf=X_mtf, ax=ax, reversed_cmap=True)
+plt.colorbar(mappable_image);
+
+#image_size = 48
+#window_size, remainder = divmod(n_timestamps, image_size)
+
+#if remainder == 0:
+       # X_amtf = np.reshape(X_mtf, image_size, window_size, image_size, window_size).mean(axis=(1, 3))
+
+#else:
+        # Needs to compute piecewise aggregate approximation in this case. This
+        # is fully implemented in the pyts package
+      #  pass
+
+fig = plt.figure(figsize=(5,4))
+ax = fig.add_subplot(1,1,1)
+_, mappable_image = tsia.plot.plot_markov_transition_field(mtf=X_mtf, ax=ax, reversed_cmap=True)
+plt.colorbar(mappable_image);
+
+_ = tsia.plot.plot_mtf_metrics(X_mtf)
+
+
+
+mtf_map = tsia.markov.get_mtf_map(A, X_mtf, reversed_cmap=True)
+_ = tsia.plot.plot_colored_timeseries(A, mtf_map)
+
+
+def plot_colored_timeseries(tag, image_size=96, colormap='jet'):
+        # Loads the signal from disk:
+        #tag_df = pd.read_csv(os.path.join(DATA, f'{tag}.csv'))
+        #tag_df['timestamp'] = pd.to_datetime(tag_df['timestamp'], format='%Y-%m-%dT%H:%M:%S.%f')
+        #tag_df = tag_df.set_index('timestamp')
+
+        # Build the MTF for this signal:
+        X = A.values.reshape(1, -1)
+        mtf = MarkovTransitionField(image_size=image_size, n_bins=n_bins, strategy=strategy)
+        tag_mtf = mtf.fit_transform(X)
+
+        # Initializing figure:
+        fig = plt.figure(figsize=(28, 4))
+        gs = gridspec.GridSpec(1, 2, width_ratios=[1, 4])
+
+        # Plotting MTF:
+        ax = fig.add_subplot(gs[0])
+        ax.set_title('Markov transition field')
+        _, mappable_image = tsia.plot.plot_markov_transition_field(mtf=tag_mtf[0], ax=ax, reversed_cmap=True)
+        plt.colorbar(mappable_image)
+
+        # Plotting signal:
+        ax = fig.add_subplot(gs[1])
+        ax.set_title(f'Signal timeseries for tag {tag}')
+        mtf_map = tsia.markov.get_mtf_map(A, tag_mtf[0], reversed_cmap=True, step_size=0)
+        _ = tsia.plot.plot_colored_timeseries(A, mtf_map, ax=ax)
+
+        return tag_mtf
+
+stats = []
+mtf = plot_colored_timeseries('signal-1', image_size=8)
+s = tsia.markov.compute_mtf_statistics(mtf[0])
+s.update({'Signal': 'signal-1'})
+stats.append(s)
+
+
+mtf = plot_colored_timeseries('signal-2', image_size=48)
+_ = tsia.plot.plot_mtf_metrics(mtf[0])
+s = tsia.markov.compute_mtf_statistics(mtf[0])
+s.update({'Signal': 'signal-2'})
+stats.append(s)
+
+mtf = plot_colored_timeseries('signal-3', image_size=48)
+_ = tsia.plot.plot_mtf_metrics(mtf[0])
+s = tsia.markov.compute_mtf_statistics(mtf[0])
+s.update({'Signal': 'signal-3'})
+stats.append(s)
+
+mtf = plot_colored_timeseries('signal-4', image_size=48)
+_ = tsia.plot.plot_mtf_metrics(mtf[0])
+s = tsia.markov.compute_mtf_statistics(mtf[0])
+s.update({'Signal': 'signal-4'})
+stats.append(s)
+
+mtf = plot_colored_timeseries('signal-5', image_size=48)
+_ = tsia.plot.plot_mtf_metrics(mtf[0])
+s = tsia.markov.compute_mtf_statistics(mtf[0])
+s.update({'Signal': 'signal-5'})
+stats.append(s)
+
+mtf = plot_colored_timeseries('signal-6', image_size=48)
+_ = tsia.plot.plot_mtf_metrics(mtf[0])
+s = tsia.markov.compute_mtf_statistics(mtf[0])
+s.update({'Signal': 'signal-6'})
+stats.append(s)
+
+mtf = plot_colored_timeseries('signal-7', image_size=48)
+_ = tsia.plot.plot_mtf_metrics(mtf[0])
+s = tsia.markov.compute_mtf_statistics(mtf[0])
+s.update({'Signal': 'signal-7'})
+stats.append(s)
+
+stats = pd.DataFrame(stats)
+stats.set_index('Signal')
